@@ -1,5 +1,9 @@
 import streamlit as st
 import google.generativeai as genai
+from streamlit_mic_recorder import mic_recorder
+import speech_recognition as sr
+import tempfile
+import wave
 
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
@@ -33,14 +37,22 @@ st.sidebar.info(
     """
 )
 
-# ==========================
-# TITLE
-# ==========================
-
 st.title("🌱 Natural Farming Consultant")
 
 st.write(
     "Voice-ready AI farming assistant helping farmers with crop diseases, weather information and market intelligence."
+)
+
+# ==========================
+# VOICE ASSISTANT
+# ==========================
+
+st.header("🎤 Voice Assistant")
+
+audio = mic_recorder(
+    start_prompt="🎙️ Start Recording",
+    stop_prompt="⏹️ Stop Recording",
+    key="voice"
 )
 
 # ==========================
