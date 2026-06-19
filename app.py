@@ -216,27 +216,45 @@ if question:
     {question}
     """
 
+    # ==========================
+    # CALL GEMINI WITH GRACEFUL RATE-LIMIT HANDLING
+    # ==========================
+    # The free Gemini tier allows only a limited number of requests per
+    # minute (commonly 5/min for gemini-2.5-flash). Instead of letting the
+    # app crash with a raw traceback when that limit is hit (HTTP 429),
+    # we catch it and show the farmer a clear, friendly message.
+    answer_text = None
     try:
         response = model.generate_content(prompt)
+        answer_text = response.text
 
+    except Exception as e:
+        err_str = str(e)
+        if "429" in err_str or "quota" in err_str.lower() or "rate" in err_str.lower():
+            st.error(
+                "⚠️ You've hit the free-tier Gemini API rate limit "
+                "(a few requests per minute allowed). "
+                "Please wait about 30 seconds and try again."
+            )
+        else:
+            st.error(f"Error: {e}")
+
+    if answer_text:
         st.success("AI Recommendation")
-        st.write(response.text)
+        st.write(answer_text)
 
-        st.session_state.last_answer = response.text
+        st.session_state.last_answer = answer_text
 
         # ==========================
         # TEXT-TO-SPEECH OUTPUT
         # ==========================
         with st.spinner("Generating voice response..."):
-            audio_bytes, tts_error = text_to_speech_bytes(response.text, voice_lang_code)
+            audio_bytes, tts_error = text_to_speech_bytes(answer_text, voice_lang_code)
 
         if tts_error:
             st.warning(tts_error)
         elif audio_bytes:
             st.audio(audio_bytes, format="audio/mp3")
-
-    except Exception as e:
-        st.error(f"Error: {e}")
 
 # ==========================
 # WEATHER INFORMATION
