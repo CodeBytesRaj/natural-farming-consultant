@@ -2,8 +2,11 @@ import streamlit as st
 import google.generativeai as genai
 from streamlit_mic_recorder import mic_recorder
 import speech_recognition as sr
+from gtts import gTTS
+from pydub import AudioSegment
 import tempfile
-import wave
+import os
+import io
 
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
@@ -34,6 +37,8 @@ st.sidebar.info(
     ✅ Organic Treatment
     ✅ Weather Intelligence
     ✅ Market Intelligence
+    ✅ Voice Input (Hindi/Hinglish/English)
+    ✅ Voice Output (Hindi/English)
     """
 )
 
@@ -44,10 +49,104 @@ st.write(
 )
 
 # ==========================
-# VOICE ASSISTANT
+# SESSION STATE INIT
+# ==========================
+# Used to pass recognized speech text into the question text box,
+# and to remember the last AI answer so TTS can be regenerated on demand.
+
+if "voice_question" not in st.session_state:
+    st.session_state.voice_question = ""
+
+if "last_answer" not in st.session_state:
+    st.session_state.last_answer = ""
+
+# ==========================
+# HELPER: SPEECH-TO-TEXT
+# ==========================
+
+def transcribe_audio(audio_bytes):
+    """
+    Converts recorded microphone audio (raw bytes from mic_recorder)
+    into text using Google Web Speech API via SpeechRecognition.
+
+    Tries Hindi first (covers Hindi + most Hinglish speech patterns),
+    then falls back to Indian English if Hindi recognition fails.
+
+    Returns (recognized_text, error_message). One of them will be None.
+    """
+    tmp_webm_path = None
+    tmp_wav_path = None
+    try:
+        # Save raw recorded bytes to a temp file first (mic_recorder usually
+        # returns webm/ogg-style audio depending on browser).
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as tmp_webm:
+            tmp_webm.write(audio_bytes)
+            tmp_webm_path = tmp_webm.name
+
+        # Convert to clean 16-bit PCM WAV using pydub (requires ffmpeg).
+        sound = AudioSegment.from_file(tmp_webm_path)
+        tmp_wav_path = tmp_webm_path.replace(".webm", ".wav")
+        sound.export(tmp_wav_path, format="wav")
+
+        recognizer = sr.Recognizer()
+        with sr.AudioFile(tmp_wav_path) as source:
+            audio_data = recognizer.record(source)
+
+        # Try Hindi first
+        try:
+            text = recognizer.recognize_google(audio_data, language="hi-IN")
+            return text, None
+        except sr.UnknownValueError:
+            # Fall back to Indian English (handles English / mixed Hinglish typed in Latin script)
+            try:
+                text = recognizer.recognize_google(audio_data, language="en-IN")
+                return text, None
+            except sr.UnknownValueError:
+                return None, "Sorry, I could not understand the audio. Please speak clearly and try again."
+            except sr.RequestError as e:
+                return None, f"Speech recognition service error: {e}"
+        except sr.RequestError as e:
+            return None, f"Speech recognition service error: {e}"
+
+    except Exception as e:
+        return None, f"Could not process the recorded audio: {e}"
+
+    finally:
+        # Clean up temp files regardless of success/failure
+        for path in (tmp_webm_path, tmp_wav_path):
+            if path and os.path.exists(path):
+                try:
+                    os.remove(path)
+                except Exception:
+                    pass
+
+
+# ==========================
+# HELPER: TEXT-TO-SPEECH
+# ==========================
+
+def text_to_speech_bytes(text, lang_code):
+    """
+    Converts text into speech audio bytes using gTTS.
+    Returns (audio_bytes, error_message).
+    """
+    try:
+        tts = gTTS(text=text, lang=lang_code)
+        buf = io.BytesIO()
+        tts.write_to_fp(buf)
+        buf.seek(0)
+        return buf.read(), None
+    except Exception as e:
+        return None, f"Could not generate audio: {e}"
+
+
+# ==========================
+# VOICE ASSISTANT (STT)
 # ==========================
 
 st.header("🎤 Voice Assistant")
+
+st.caption("Speak in Hindi, Hinglish, or English. Click Stop when done.")
 
 audio = mic_recorder(
     start_prompt="🎙️ Start Recording",
@@ -55,16 +154,44 @@ audio = mic_recorder(
     key="voice"
 )
 
+# Handle microphone / recording failures gracefully
+if audio is None:
+    st.info("Waiting for microphone input... (click 'Start Recording' above)")
+elif not audio.get("bytes"):
+    st.warning("No audio detected. Please check microphone permissions and try again.")
+else:
+    with st.spinner("Transcribing your speech..."):
+        recognized_text, stt_error = transcribe_audio(audio["bytes"])
+
+    if stt_error:
+        st.error(stt_error)
+    elif recognized_text:
+        st.success("Recognized Speech:")
+        st.write(f"🗣️ **{recognized_text}**")
+        # Push recognized text into the question box below
+        st.session_state.voice_question = recognized_text
+
 # ==========================
 # AI FARMING CONSULTANT
 # ==========================
 
 st.header("🤖 AI Farming Expert")
 
+# Text input is pre-filled with recognized voice text (if any),
+# but farmers can still type directly — original behavior preserved.
 question = st.text_input(
     "Ask your farming question",
+    value=st.session_state.voice_question,
     placeholder="Example: Tomato leaves have yellow spots"
 )
+
+# Language choice for the spoken (TTS) response
+voice_lang = st.radio(
+    "🔊 Voice response language",
+    options=["Hindi", "English"],
+    horizontal=True
+)
+voice_lang_code = "hi" if voice_lang == "Hindi" else "en"
 
 if question:
 
@@ -90,15 +217,25 @@ if question:
     """
 
     try:
-
         response = model.generate_content(prompt)
 
         st.success("AI Recommendation")
-
         st.write(response.text)
 
-    except Exception as e:
+        st.session_state.last_answer = response.text
 
+        # ==========================
+        # TEXT-TO-SPEECH OUTPUT
+        # ==========================
+        with st.spinner("Generating voice response..."):
+            audio_bytes, tts_error = text_to_speech_bytes(response.text, voice_lang_code)
+
+        if tts_error:
+            st.warning(tts_error)
+        elif audio_bytes:
+            st.audio(audio_bytes, format="audio/mp3")
+
+    except Exception as e:
         st.error(f"Error: {e}")
 
 # ==========================
