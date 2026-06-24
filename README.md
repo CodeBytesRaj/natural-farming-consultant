@@ -1,71 +1,173 @@
 # 🌱 Natural Farming Consultant
 
-## Overview
-
-Natural Farming Consultant is an AI-powered assistant designed to help farmers with:
-
-* Disease Identification
-* Organic Treatment Recommendations
-* Weather Intelligence
-* Market Price Intelligence
-
-The application uses Google's Gemini AI model to provide natural farming guidance in a simple and farmer-friendly format.
+An AI-powered farming assistant built using **Python, Streamlit, and Google Gemini AI** to help farmers make informed decisions through disease identification, organic treatment recommendations, weather insights, and market intelligence.
 
 ---
 
-## Features
+## 🚀 Live Demo
 
-### Disease Identification & Treatment
+🔗 https://natural-farming-consultant-fmdewx3qqzysvdvvpahvbp.streamlit.app/
+
+Access the application directly through your browser without any local setup.
+
+---
+
+## 📖 Overview
+
+Natural Farming Consultant is designed to support farmers with practical and sustainable farming guidance. The application leverages Google's Gemini AI model to provide intelligent recommendations in a simple and farmer-friendly format.
+
+The goal is to promote natural farming practices while helping farmers identify crop issues, understand weather conditions, and stay informed about market prices.
+
+---
+
+## ✨ Features
+
+### 🌾 Disease Identification
 
 Farmers can describe crop symptoms and receive:
 
-* Problem Identification
-* Organic Treatment Suggestions
-* Prevention Measures
+* Disease identification
+* Root cause analysis
+* Organic treatment recommendations
+* Prevention strategies
 
-### Weather Intelligence
+### 🌱 Organic Treatment Recommendations
 
-Provides weather information for selected cities.
+* Chemical-free farming suggestions
+* Natural remedies
+* Sustainable crop protection techniques
 
-### Market Intelligence
+### 🌦️ Weather Intelligence
 
-Displays market prices for major crops.
+* Weather information for selected locations
+* Farming-friendly weather insights
+* Better planning for agricultural activities
 
-### Natural Farming Education
+### 📈 Market Price Intelligence
 
-Provides basic natural farming tips and best practices.
+* Crop price information
+* Market awareness
+* Better decision-making support
+
+### 🤖 AI-Powered Consultation
+
+* Powered by Google Gemini AI
+* Natural language interaction
+* Farmer-friendly responses
+* Personalized recommendations
 
 ---
 
-## Technology Stack
+## 🛠️ Technology Stack
 
-* Python
-* Streamlit
-* Google Gemini API
-* Requests
+| Category             | Technology        |
+| -------------------- | ----------------- |
+| Programming Language | Python            |
+| Framework            | Streamlit         |
+| AI Model             | Google Gemini API |
+| Libraries            | Requests          |
+| Deployment           | Streamlit Cloud   |
 
 ---
 
-## Installation
+## 📂 Project Structure
+
+```text
+natural-farming-consultant/
+│
+├── app.py
+├── requirements.txt
+├── packages.txt
+├── README.md
+└── .devcontainer/
+```
+
+---
+
+## ⚙️ Installation & Setup
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/CodeBytesRaj/natural-farming-consultant.git
+```
+
+### Navigate to Project Directory
+
+```bash
+cd natural-farming-consultant
+```
+
+### Install Dependencies
 
 ```bash
 pip install -r requirements.txt
+```
+
+### Run the Application
+
+```bash
 streamlit run app.py
 ```
 
 ---
 
-## Project Structure
+## 🎯 Use Cases
 
-Natural-Farming-Consultant
-
-* app.py
-* requirements.txt
-* README.md
+* Crop disease diagnosis
+* Organic farming consultation
+* Sustainable agriculture guidance
+* Weather-based farming decisions
+* Market price awareness
+* AI-powered agricultural support
 
 ---
 
-## Developed For
+## 🏆 Key Learning Outcomes
 
-Connecting Dreams Foundation (CDF)
+This project helped develop skills in:
+
+* Generative AI Integration
+* Prompt Engineering
+* Streamlit Application Development
+* API Integration
+* Python Development
+* AI Product Building
+* Problem Solving for Real-World Use Cases
+
+---
+
+## 📋 Developed For
+
+**Connecting Dreams Foundation (CDF)**
 Round 2 Technical Assignment
+
+---
+
+## 🔮 Future Enhancements
+
+* Image-based disease detection
+* Regional language support
+* Personalized crop recommendations
+* Voice-based farmer interaction
+* Real-time weather forecasting
+* Expanded market intelligence system
+
+---
+
+## 👨‍💻 Author
+
+### Kashish Raj
+
+🔗 GitHub: https://github.com/CodeBytesRaj
+
+🔗 LinkedIn: https://www.linkedin.com/in/kashishraj-cse/
+
+---
+
+## ⭐ Support
+
+If you found this project useful, consider giving it a star on GitHub.
+
+Contributions, suggestions, and feedback are always welcome.
+
